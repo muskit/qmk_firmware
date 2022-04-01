@@ -19,3 +19,5 @@ AUDIO_ENABLE = no           # Audio output
 ENCODER_ENABLE = yes
 RGB_MATRIX_ENABLE = yes
 RGB_MATRIX_DRIVER = AW20216
+DEFERRED_EXEC_ENABLE = yes
+DEBOUNCE_TYPE = asym_eager_defer_pk 

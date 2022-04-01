@@ -1,3 +1,7 @@
+# muskit's GMMK Pro Custom Firmware
+
+This is my forked custom firmware for the GMMK Pro. You can find my code at [`keyboards/gmmk/pro/ansi/keymaps/msk/`](keyboards/gmmk/pro/ansi/keymaps/msk/).
+
 # Quantum Mechanical Keyboard Firmware
 
 [![Current Version](https://img.shields.io/github/tag/qmk/qmk_firmware.svg)](https://github.com/qmk/qmk_firmware/tags)
