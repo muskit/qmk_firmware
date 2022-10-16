@@ -1,6 +1,12 @@
 # muskit's GMMK Pro Custom Firmware
 
-This is my forked custom firmware for the GMMK Pro. You can find my code at [`keyboards/gmmk/pro/ansi/keymaps/msk/`](keyboards/gmmk/pro/ansi/keymaps/msk/).
+This is my custom keymap for the GMMK Pro (ANSI layout). This repository was forked from QMK. You can find my code at [`keyboards/gmmk/pro/ansi/keymaps/msk/`](keyboards/gmmk/pro/ansi/keymaps/msk/).
+
+**To compile:**
+`qmk compile -kb gmmk/pro/ansi -km msk`
+
+**To flash (and automatically compile):**
+`qmk flash -kb gmmk/pro/ansi -km msk`
 
 # Quantum Mechanical Keyboard Firmware
 
