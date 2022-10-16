@@ -71,10 +71,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 // update KNOB_MODE_COUNT to match
 // # of elements in enum KNOB_MODE
-const uint8_t KNOB_MODE_COUNT = 3;
+const uint8_t KNOB_MODE_COUNT = 2;
 enum KNOB_MODE {
-  VOLUME = 0,
-  PLAYBACK,
+  PLAYBACK = 0,
   SCROLL
 };
 
@@ -135,27 +134,26 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record)
   {
     case KC_MSK_KNOB_BTN:
       knob_btn_held = record->event.pressed;
-      if (record->event.pressed) { // on key down
+      if (record->event.pressed) // on key down
       {
-        presses_count++;
         switch (current_knob_mode)
         {
           case PLAYBACK:
+            presses_count++;
             if (callback_token == INVALID_DEFERRED_TOKEN)
               callback_token = defer_exec(MACRO_TAP_THRESHOLD, knob_playback_callback, NULL);
             else
               extend_deferred_exec(callback_token, MACRO_TAP_THRESHOLD);
-            break;
-          case VOLUME:
-            tap_code(KC_MUTE);
             break;
           case SCROLL:
             isVerticalScroll = !isVerticalScroll;
             break;
         }
       }
-      } else { // on key up
-      }
+	  else// on key up
+	  {
+		  
+    }
       return false; // Skip all further processing of this key
     case KC_MSK_KNOB_MODE_BTN:
       if (record->event.pressed) {
@@ -175,20 +173,20 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
   if (fn_btn_held)
   {
     tap_code(clockwise ? KC_PAUS : KC_SLCK);
-    return true;
+    return false; // prevent unwanted volume change
   }
   
   switch (current_knob_mode)
   {
-    case VOLUME:
+    case PLAYBACK:
       tap_code(clockwise ? KC_VOLU : KC_VOLD);
       break;
-    case PLAYBACK:
-      if (clockwise)
-        tap_code(KC_RGHT);
-      else
-        tap_code(KC_LEFT);
-      break;
+    // case PLAYBACK:
+    //   if (clockwise)
+    //     tap_code(KC_RGHT);
+    //   else
+    //     tap_code(KC_LEFT);
+    //   break;
     case SCROLL:
       if (clockwise)
       {
@@ -206,13 +204,13 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
       }
       break;
   }
-  return true;
+  return false;
 }
 #endif // ENCODER_ENABLE
 
 
 ///
-/// RGB LEDs
+/// LEDs
 ///
 const uint8_t MODE_LED_IDX = 69; // nice
 
