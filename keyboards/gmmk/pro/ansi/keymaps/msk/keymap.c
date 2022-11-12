@@ -235,6 +235,7 @@ uint32_t mode_led_callback(uint32_t trigger_time, void *cb_arg)
 
 void rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max)
 {
+  /* mode LED */
   if (mode_led_token == INVALID_DEFERRED_TOKEN)
     mode_led_token = defer_exec(100, mode_led_callback, NULL);
   
@@ -245,5 +246,19 @@ void rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max)
   else
   {
     RGB_MATRIX_INDICATOR_SET_COLOR(MODE_LED_IDX, 0, 0, 0);
+  }
+
+  /* Caps Lock */
+  if (IS_HOST_LED_ON(USB_LED_CAPS_LOCK)) {
+    RGB_MATRIX_INDICATOR_SET_COLOR(67, on_brightness, on_brightness, on_brightness);
+    RGB_MATRIX_INDICATOR_SET_COLOR(70, on_brightness, on_brightness, on_brightness);
+    RGB_MATRIX_INDICATOR_SET_COLOR(73, on_brightness, on_brightness, on_brightness);
+    RGB_MATRIX_INDICATOR_SET_COLOR(76, on_brightness, on_brightness, on_brightness);
+    RGB_MATRIX_INDICATOR_SET_COLOR(80, on_brightness, on_brightness, on_brightness);
+    RGB_MATRIX_INDICATOR_SET_COLOR(83, on_brightness, on_brightness, on_brightness);
+    RGB_MATRIX_INDICATOR_SET_COLOR(87, on_brightness, on_brightness, on_brightness);
+    RGB_MATRIX_INDICATOR_SET_COLOR(91, on_brightness, on_brightness, on_brightness);
+    RGB_MATRIX_INDICATOR_SET_COLOR(3, on_brightness, on_brightness, on_brightness);
+    // rgb_matrix_set_color_all(RGB_WHITE);
   }
 }
