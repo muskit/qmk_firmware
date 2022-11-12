@@ -258,7 +258,14 @@ void rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max)
     RGB_MATRIX_INDICATOR_SET_COLOR(83, on_brightness, on_brightness, on_brightness);
     RGB_MATRIX_INDICATOR_SET_COLOR(87, on_brightness, on_brightness, on_brightness);
     RGB_MATRIX_INDICATOR_SET_COLOR(91, on_brightness, on_brightness, on_brightness);
+    RGB_MATRIX_INDICATOR_SET_COLOR(0, on_brightness, on_brightness, on_brightness);
+    RGB_MATRIX_INDICATOR_SET_COLOR(1, on_brightness, on_brightness, on_brightness);
+    RGB_MATRIX_INDICATOR_SET_COLOR(2, on_brightness, on_brightness, on_brightness);
     RGB_MATRIX_INDICATOR_SET_COLOR(3, on_brightness, on_brightness, on_brightness);
+    RGB_MATRIX_INDICATOR_SET_COLOR(4, on_brightness, on_brightness, on_brightness);
+    RGB_MATRIX_INDICATOR_SET_COLOR(5, on_brightness, on_brightness, on_brightness);
+    RGB_MATRIX_INDICATOR_SET_COLOR(11, on_brightness, on_brightness, on_brightness);
+    RGB_MATRIX_INDICATOR_SET_COLOR(17, on_brightness, on_brightness, on_brightness);
     // rgb_matrix_set_color_all(RGB_WHITE);
   }
 }
