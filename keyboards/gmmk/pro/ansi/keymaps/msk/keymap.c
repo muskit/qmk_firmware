@@ -14,11 +14,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "quantum.h"
 #include QMK_KEYBOARD_H
 
 enum msk_keycodes {
   KC_MSK_KNOB_BTN = SAFE_RANGE,
-  KC_MSK_KNOB_MODE_BTN
+  KC_MSK_VIM_TGL_BTN
 };
 
 // clang-format off
@@ -32,7 +33,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 //      Ct_L     Win_L    Alt_L                               SPACE                               Alt_R    FN       Ct_R     Left     Down     Right
 
 
-    // The FN key by default maps to a momentary toggle to layer 1 to provide access to the RESET key (to put the board into bootloader mode). Withoutqqqqqqq
+    // The FN key by default maps to a momentary toggle to layer 1 to provide access to the RESET key (to put the board into bootloader mode). Without
     // this mapping, you have to open the case to hit the button on the bottom of the PCB (near the USB cable attachment) while plugging in the USB
     // cable to get the board into bootloader mode - definitely not fun when you're working on your QMK builds. Remove this and put it back to KC_RGUI
     // if that's your preference.
@@ -44,7 +45,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Since this is, among other things, a "gaming" keyboard, a key combination to enable NKRO on the fly is provided for convenience.
     // Press Fn+N to toggle between 6KRO and NKRO. This setting is persisted to the EEPROM and thus persists between restarts.
     [0] = LAYOUT(
-        KC_ESC,  KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12,  KC_MSK_KNOB_MODE_BTN, KC_MSK_KNOB_BTN,
+        KC_ESC,  KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12,  KC_DEL,           KC_MSK_KNOB_BTN,
         KC_GRV,  KC_1,    KC_2,    KC_3,    KC_4,    KC_5,    KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    KC_MINS, KC_EQL,  KC_BSPC,          KC_HOME,
         KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_LBRC, KC_RBRC, KC_BSLS,          KC_PGUP,
         KC_CAPS, KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_QUOT,          KC_ENT,           KC_PGDN,
@@ -54,7 +55,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
     [1] = LAYOUT(
         _______, KC_MYCM, KC_WHOM, KC_CALC, KC_MSEL, KC_MPRV, KC_MNXT, KC_MPLY, KC_MSTP, _______, _______, _______, _______, KC_PSCR,          _______,
-        _______, RGB_TOG, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, KC_DEL,           KC_INSERT,
+        _______, RGB_TOG, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, KC_MSK_VIM_TGL_BTN,           KC_INSERT,
         _______, _______, RGB_VAI, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, RESET,            _______,
         _______, _______, RGB_VAD, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______,          _______,
         _______,          _______, RGB_HUI, _______, _______, _______, NK_TOGG, _______, _______, _______, _______,          _______, RGB_MOD, _______,
@@ -71,15 +72,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 // update KNOB_MODE_COUNT to match
 // # of elements in enum KNOB_MODE
-const uint8_t KNOB_MODE_COUNT = 2;
-enum KNOB_MODE {
-  PLAYBACK = 0,
-  SCROLL
-};
 
 // knob button stuff
 const uint16_t MACRO_TAP_THRESHOLD = 300;
-uint8_t current_knob_mode = 0;
 
 deferred_token callback_token = 0; // typedef uint8_t deferred_token
 int presses_count = 0;
@@ -87,6 +82,11 @@ bool isVerticalScroll = true;
 bool isHoldForMute = false;
 bool knob_btn_held = false;
 bool fn_btn_held = false;
+
+/////
+///// CUSTOM VIM MACROS
+/////
+bool vimCapsMode = false;
 
 // playback mode callback
 uint32_t knob_playback_callback(uint32_t trigger_time, void *cb_arg)
@@ -109,7 +109,7 @@ uint32_t knob_playback_callback(uint32_t trigger_time, void *cb_arg)
     switch (presses_count)
     {
       case 1:
-          tap_code(KC_MPLY);
+        tap_code(KC_MPLY);
         break;
       case 2:
         tap_code(KC_MNXT);
@@ -136,30 +136,34 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record)
       knob_btn_held = record->event.pressed;
       if (record->event.pressed) // on key down
       {
-        switch (current_knob_mode)
-        {
-          case PLAYBACK:
-            presses_count++;
-            if (callback_token == INVALID_DEFERRED_TOKEN)
-              callback_token = defer_exec(MACRO_TAP_THRESHOLD, knob_playback_callback, NULL);
-            else
-              extend_deferred_exec(callback_token, MACRO_TAP_THRESHOLD);
-            break;
-          case SCROLL:
-            isVerticalScroll = !isVerticalScroll;
-            break;
-        }
+        presses_count++;
+        if (callback_token == INVALID_DEFERRED_TOKEN)
+          callback_token = defer_exec(MACRO_TAP_THRESHOLD, knob_playback_callback, NULL);
+        else
+          extend_deferred_exec(callback_token, MACRO_TAP_THRESHOLD);
+        break;
       }
-	  else// on key up
-	  {
-		  
-    }
       return false; // Skip all further processing of this key
-    case KC_MSK_KNOB_MODE_BTN:
+    case KC_MSK_VIM_TGL_BTN:
       if (record->event.pressed) {
-        current_knob_mode = (current_knob_mode + 1) % KNOB_MODE_COUNT;
+        vimCapsMode = !vimCapsMode;
       }
       return false;
+    case KC_CAPS:
+      if (!vimCapsMode) return true;
+      else
+      {
+        record->event.pressed ? register_code16(KC_ESC) : unregister_code16(KC_ESC);
+        return false;
+      }
+      break;
+    case KC_ESC:
+      if (!vimCapsMode) return true;
+      else
+      {
+        record->event.pressed ? register_code16(KC_CAPS) : unregister_code16(KC_CAPS);
+        return false;
+      }
     case MO(1):
       fn_btn_held = record->event.pressed;
       return true;
@@ -176,34 +180,7 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
     return false; // prevent unwanted volume change
   }
   
-  switch (current_knob_mode)
-  {
-    case PLAYBACK:
-      tap_code(clockwise ? KC_VOLU : KC_VOLD);
-      break;
-    // case PLAYBACK:
-    //   if (clockwise)
-    //     tap_code(KC_RGHT);
-    //   else
-    //     tap_code(KC_LEFT);
-    //   break;
-    case SCROLL:
-      if (clockwise)
-      {
-        if (isVerticalScroll)
-          tap_code(KC_WH_D);
-        else
-          tap_code(KC_WH_R);
-      }
-      else
-      {
-        if (isVerticalScroll)
-          tap_code(KC_WH_U);
-        else
-          tap_code(KC_WH_L);
-      }
-      break;
-  }
+  tap_code(clockwise ? KC_VOLU : KC_VOLD);
   return false;
 }
 #endif // ENCODER_ENABLE
@@ -221,14 +198,14 @@ deferred_token mode_led_token = 0;
 uint32_t mode_led_callback(uint32_t trigger_time, void *cb_arg)
 {
   uint32_t delay_time = 100;
-  if (current_knob_mode == 0)
+  if (!vimCapsMode)
   {
     flash_state = true;
   }
   else
   {
     flash_state = !flash_state;
-    delay_time = 500/(current_knob_mode*current_knob_mode);
+    delay_time = 500;
   }
   return delay_time;
 }
